@@ -46,7 +46,7 @@ The skill reports local findings and lists any platform permissions that still n
 
 The diagrams mark where the skill helps prepare signing and upload credentials, who supplies or authorizes them, and where the project takes over the release.
 
-The interactive HTML includes commands and console paths. Download it from GitHub and open it in a browser to expand the operation steps. [Interactive release flows in English](docs/release-flow/mobile-release-flow.html)
+Open the [interactive release flows in English](https://hydra1983.github.io/mobile-store-credentials/release-flow/mobile-release-flow.html) to expand commands and console paths.
 
 ### iOS
 

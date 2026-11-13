@@ -42,7 +42,7 @@ Skill 会汇报本地检查结果和待核实的平台权限。[Skill 说明（�
 
 ## 发布流程图
 
-图中标出每项凭据由谁提供或授权、Skill 可以协助什么，以及何时交给项目发布。下载 [中文版交互流程图](docs/release-flow/mobile-release-flow.zh_CN.html) 后用浏览器打开，可展开查看命令和后台入口。
+图中标出每项凭据由谁提供或授权、Skill 可以协助什么，以及何时交给项目发布。打开 [中文版交互流程图](https://hydra1983.github.io/mobile-store-credentials/release-flow/mobile-release-flow.zh_CN.html)，即可展开查看命令和后台入口。
 
 ### iOS
 
