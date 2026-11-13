@@ -44,6 +44,20 @@ The skill reports local findings and lists any platform permissions that still n
 
 This repository includes a read-only [iOS signing checker](scripts/check-ios-signing.py) for App Store profiles and P12 distribution identities. It runs with Python 3 and OpenSSL and works independently of Codex. See [the command and expected results](references/ios.md#run-the-local-signing-checker).
 
+## Prepare or check a Google Play publisher credential
+
+Use the [gcloud workflow](references/android.md#prepare-a-publisher-credential-with-gcloud) to check whether the Android Publisher API is enabled and the service account exists. It also shows how to enable the API, create an account, or write a JSON key when needed and authorized. Grant the service account access to the target app separately in Play Console.
+
+If you already have a service-account JSON, you can optionally check access to the target package with [gpd](https://github.com/dl-alexandre/Google-Play-Developer-CLI). Set `PLAY_SERVICE_ACCOUNT_JSON` to your local credential file and replace the example package.
+
+```sh
+gpd auth check \
+  --key-path "${PLAY_SERVICE_ACCOUNT_JSON:?Set the service-account JSON path}" \
+  --package com.example.fieldnotes --store-tokens never --output json
+```
+
+This online probe creates an uncommitted Play edit and attempts to delete it. Run it when that temporary edit is authorized, and check the result for cleanup errors. Verify upload and release permissions separately. For offline or strict read-only checks, use `gpd auth check --help` to inspect the command.
+
 ## Upstream references
 
 - The iOS guide follows the sequence of checking the Bundle ID and capabilities, selecting a signing certificate, and obtaining a matching provisioning profile. [`asc-signing-setup` by rorkai](https://github.com/rorkai/app-store-connect-cli-skills/blob/main/skills/asc-signing-setup/SKILL.md)
