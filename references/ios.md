@@ -20,9 +20,9 @@ fastlane sigh \
   --skip_install
 ```
 
-Use the confirmed Team ID and certificate resource ID. Check the downloaded profile's embedded certificate against the P12 even when Fastlane reused an existing profile. If the tool requires the signing identity in the local keychain, follow the project's authorized setup or use the portal. For projects already using Expo-managed signing, the interactive `eas credentials --platform ios` route can export that project's existing EAS credentials. Select the target project and build profile.
+Use the confirmed Team ID and certificate resource ID. Check the downloaded profile's embedded certificate against the P12 even when Fastlane reused an existing profile. If the tool requires the signing identity in the local keychain, follow the project's authorized setup or use the portal.
 
-[Apple App Store profile guide](https://developer.apple.com/help/account/provisioning-profiles/create-an-app-store-provisioning-profile) · [Fastlane sigh](https://docs.fastlane.tools/actions/sigh/) · [ASC signing reference](https://github.com/rorkai/app-store-connect-cli-skills/blob/main/skills/asc-signing-setup/SKILL.md) · [Expo credential sync](https://docs.expo.dev/app-signing/syncing-credentials/)
+[Apple App Store profile guide](https://developer.apple.com/help/account/provisioning-profiles/create-an-app-store-provisioning-profile) · [Fastlane sigh](https://docs.fastlane.tools/actions/sigh/) · [ASC signing reference](https://github.com/rorkai/app-store-connect-cli-skills/blob/main/skills/asc-signing-setup/SKILL.md)
 
 ## Run the local signing checker
 

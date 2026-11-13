@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>iOS 与 Android 发布流程</title>
+<style>
+:root {
+  color-scheme: light;
+  --paper: #f5f4ef;
+  --surface: #fffcf7;
+  --ink: #162d28;
+  --muted: #425a51;
+  --accent: #28614c;
+  --line: #d7dfd5;
+  --tint: #e8f0e8;
+  --dark: #13362d;
+  --soft: #c6dcd0;
+  --mono: "Geist Mono", ui-monospace, Menlo, Consolas, monospace;
+  --sans: Geist, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  --serif: "Instrument Serif", "Songti SC", Georgia, serif;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 18px; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 16px/1.58 var(--sans); }
+h1, h2, h3, h4, p { margin: 0; }
+a { color: inherit; }
+a:focus-visible { outline: 2px solid currentColor; outline-offset: 4px; }
+.wrap { width: min(1176px, calc(100% - 80px)); margin-inline: auto; }
+.masthead { background: var(--dark); color: #fffdf4; padding: 48px 0; }
+.hero { display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: 42px; }
+h1 { font-size: clamp(36px, 4.75vw, 64px); font-weight: 650; line-height: 1.12; letter-spacing: -.04em; }
+h1 span { display: block; }
+h1 .latin { font: 400 1.08em/1.06 var(--serif); letter-spacing: -.045em; }
+.hero-copy p { color: var(--soft); max-width: 34em; margin-top: 17px; }
+.hero-copy code { color: #fffdf4; font-family: var(--mono); font-size: .85em; }
+nav { display: flex; gap: 9px; margin-top: 23px; }
+nav a { border: 1px solid #729283; border-radius: 999px; text-decoration: none; padding: 6px 14px; font-size: 14px; }
+nav a:hover { background: #2c5146; }
+.overview { width: 100%; display: block; }
+.diagram-panel { fill: #183e34; stroke: #537568; }
+.diagram-box { fill: #234a3f; stroke: #71988a; }
+.diagram-wire { fill: none; stroke: #b9d7c7; stroke-width: 1.5; }
+.diagram-label { font: 600 19px var(--sans); fill: #f3f7ed; }
+.diagram-end { fill: #dce9ce; }
+.diagram-end-label { font: 650 19px var(--sans); fill: #183b32; }
+main { padding: 39px 0 44px; }
+.platform { background: var(--surface); border: 1px solid var(--line); border-radius: 24px; padding: 28px 30px; box-shadow: 0 12px 36px #233d2609; }
+.platform + .platform { margin-top: 24px; }
+.platform-header { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-bottom: 19px; }
+h2 { font: 400 clamp(40px, 5vw, 60px)/1 var(--serif); letter-spacing: -.05em; }
+.platform-header > div:first-child p { color: var(--muted); margin-top: 5px; }
+.target { border-left: 2px solid #93ac9a; padding: 3px 0 3px 15px; }
+.target strong { font-size: 15px; }
+.target p { color: var(--muted); font-size: 14px; }
+.workflow { background: var(--tint); border: 1px solid #d6e2d6; border-radius: 17px; padding: 16px; }
+.scope { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 9px; margin: 0 2px 11px; }
+.scope > span { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+.scope h3 { font-size: 15px; }
+.scope p { color: var(--muted); font-size: 13px; margin-left: 4px; }
+.lanes { display: grid; grid-template-columns: 1fr 1fr; gap: 13px; }
+.lane { min-width: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 15px 17px; }
+.lane h3 { font-size: 17px; margin-bottom: 12px; display: flex; align-items: center; gap: 9px; }
+.lane h3 span, .handoff > span { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 7px; background: var(--tint); color: var(--accent); font-size: 19px; flex: 0 0 auto; }
+.steps { list-style: none; margin: 0; padding: 0; }
+.steps > li { position: relative; display: grid; grid-template-columns: 31px minmax(0, 1fr); gap: 8px; padding-bottom: 13px; }
+.steps > li:last-child { padding-bottom: 0; }
+.steps > li:not(:last-child)::after { content: ""; position: absolute; top: 27px; left: 14px; bottom: 4px; width: 1px; background: #9bb5a6; }
+.steps > li:not(:last-child)::before { content: ""; position: absolute; left: 12px; bottom: 4px; width: 4px; height: 4px; border: solid #648878; border-width: 0 1px 1px 0; transform: rotate(45deg); }
+.step { background: var(--tint); color: var(--accent); border: 1px solid #d6e2d6; width: 29px; height: 24px; border-radius: 6px; display: grid; place-items: center; font: 600 11px var(--mono); }
+.steps h4 { font-size: 15px; line-height: 1.55; }
+.credential { min-width: 0; }
+.roles { margin: 6px 0 0; border-top: 1px solid var(--line); padding-top: 5px; }
+.roles > div { display: grid; grid-template-columns: 80px minmax(0, 1fr); gap: 7px; padding: 3px 0; }
+.roles dt { color: var(--accent); font-size: 12px; font-weight: 650; line-height: 1.7; }
+.roles dd { color: var(--muted); margin: 0; font-size: 14px; line-height: 1.5; overflow-wrap: anywhere; }
+.roles > div:last-child dd { color: var(--ink); }
+.handoff { display: flex; gap: 11px; align-items: center; border: 1px solid #acbfaa; background: #edf1e3; border-radius: 12px; margin: 12px 0; padding: 10px 14px; }
+.handoff h3, .release h3 { font-size: 15px; }
+.handoff p { font-size: 13px; color: var(--muted); }
+.release { padding-top: 4px; }
+.release ol { margin: 8px 0 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 15px; }
+.release li { min-width: 0; position: relative; border-top: 2px solid #b9c7bc; padding: 7px 15px 1px 0; }
+.release li:not(:last-child)::after { content: ""; width: 6px; height: 6px; transform: rotate(-45deg); border: solid #627b6b; border-width: 0 1.5px 1.5px 0; position: absolute; right: 3px; top: 14px; }
+.release strong, .release li span { display: block; }
+.release strong { font-size: 14px; }
+.release li span { color: var(--muted); font-size: 13px; }
+
+.actions { margin-top: 8px; border: 1px solid var(--line); border-radius: 8px; background: #f8faf4; }
+.actions summary { padding: 6px 8px; color: var(--accent); font-size: 12px; font-weight: 650; cursor: pointer; }
+.actions summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
+.actions ul { margin: 0; padding: 0 8px 7px; list-style: none; }
+.actions li { border-top: 1px solid var(--line); padding: 7px 0 4px; }
+.action-kind { display: inline-block; padding: 1px 5px; margin: 0 6px 3px 0; border-radius: 4px; background: #e5eee4; color: var(--accent); font-size: 11px; font-weight: 650; }
+.action-kind.admin { background: #f4e9d6; color: #674719; }
+.actions strong { color: var(--ink); font-size: 13px; }
+.actions p { color: var(--muted); font-size: 13px; line-height: 1.55; overflow-wrap: anywhere; }
+.actions pre { margin: 5px 0 2px; padding: 6px 7px; border-radius: 5px; background: #eaf0e8; color: var(--ink); font: 12px/1.5 var(--mono); white-space: pre-wrap; overflow-wrap: anywhere; }
+
+footer { margin: 17px 3px 0; color: var(--muted); font-size: 13px; }
+@media (max-width: 900px) {
+  .wrap { width: calc(100% - 44px); }
+  .hero { gap: 23px; }
+  .platform { padding: 22px; }
+}
+@media (max-width: 680px) {
+  .wrap { width: calc(100% - 28px); }
+  .masthead { padding: 28px 0 22px; }
+  .hero, .lanes { grid-template-columns: 1fr; }
+  .hero { gap: 19px; }
+  .overview { max-width: 470px; }
+  main { padding-top: 20px; }
+  .platform { padding: 15px; border-radius: 18px; }
+  .platform-header { align-items: start; flex-direction: column; gap: 10px; margin-bottom: 13px; }
+  .workflow { padding: 10px; }
+  .lane { padding: 12px; }
+  .release ol { grid-template-columns: 1fr; gap: 3px; padding-left: 10px; }
+  .release li { border: 0; padding: 3px 6px 6px 15px; }
+  .release li::before { content: ""; width: 7px; height: 7px; position: absolute; left: 0; top: 10px; border: 1px solid var(--accent); border-radius: 50%; }
+  .release li:not(:last-child)::after { width: 1px; height: auto; transform: none; border: 0; background: #9bb5a6; inset: 21px auto 0 3px; }
+}
+@media (max-width: 460px) {
+  .roles > div { grid-template-columns: 1fr; gap: 0; padding: 3px 0 5px; }
+}
+@media print {
+  .masthead { padding: 17px 0; }
+  .wrap { width: 100%; }
+  main { padding-top: 14px; }
+  .platform { box-shadow: none; break-inside: avoid; }
+}
+</style>
+</head>
+<body>
+<header class="masthead"><div class="wrap hero">
+  <div class="hero-copy">
+    <h1><span class="latin">iOS / Android</span><span>应用发布流程</span></h1>
+    <p><code>mobile-store-credentials</code> 准备发布凭据，项目团队接手构建和发布。</p>
+    <nav aria-label="按平台跳转"><a href="#ios">iOS</a><a href="#android">Android</a></nav>
+  </div>
+  <svg class="overview" viewBox="0 0 528 256" role="img" aria-labelledby="overview-title overview-desc">
+    <title id="overview-title">从凭据准备到商店发布</title>
+    <desc id="overview-desc">确认目标后并行准备构建签名和上传凭据，两路汇合并交给项目发布流程。</desc>
+    <defs><marker id="hero-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 8 4 0 8Z" fill="#b9d7c7"/></marker></defs>
+    <rect class="diagram-panel" x="2" y="2" width="524" height="252" rx="21"/>
+    <path class="diagram-wire" d="M264 60V76"/>
+    <path class="diagram-wire" d="M264 76H144Q136 76 136 84V103" marker-end="url(#hero-arrow)"/>
+    <path class="diagram-wire" d="M264 76H384Q392 76 392 84V103" marker-end="url(#hero-arrow)"/>
+    <path class="diagram-wire" d="M136 149V165Q136 173 144 173H264M392 149V165Q392 173 384 173H264"/>
+    <path class="diagram-wire" d="M264 173V198" marker-end="url(#hero-arrow)"/>
+    <rect class="diagram-box" x="172" y="22" width="184" height="38" rx="8"/>
+    <text class="diagram-label" x="264" y="47" text-anchor="middle">确定正式发布目标</text>
+    <rect class="diagram-box" x="40" y="105" width="192" height="44" rx="8"/>
+    <text class="diagram-label" x="136" y="134" text-anchor="middle">构建签名</text>
+    <rect class="diagram-box" x="296" y="105" width="192" height="44" rx="8"/>
+    <text class="diagram-label" x="392" y="134" text-anchor="middle">商店上传凭据</text>
+    <rect class="diagram-end" x="160" y="200" width="208" height="36" rx="8"/>
+    <text class="diagram-end-label" x="264" y="225" text-anchor="middle">交给项目发布</text>
+  </svg>
+</div></header>
+<main class="wrap">
+
+    <section id="ios" class="platform" aria-labelledby="ios-heading">
+      <div class="platform-header"><div><h2 id="ios-heading">iOS</h2><p>App Store</p></div><div class="target"><strong>确认正式发布目标</strong><p>Bundle ID、Apple Developer Team、应用能力。</p></div></div>
+      <div class="workflow">
+        <div class="scope"><span aria-hidden="true"></span><h3>Skill 覆盖</h3></div>
+        <div class="lanes"><div class="lane"><h3><span aria-hidden="true">◇</span>构建签名</h3><ol class="steps">
+<li><span class="step" aria-hidden="true">01</span><div class="credential"><h4>.p12 分发签名文件</h4><dl class="roles"><div><dt>来源</dt><dd>Apple 签发分发证书，团队用证书和私钥导出 .p12。</dd></div><div><dt>保管／授权</dt><dd>团队保管，授权构建环境使用。</dd></div><div><dt>Skill 协助</dt><dd>核对私钥、证书、Team 和有效期。吊销查 Apple 后台。</dd></div></dl><details class="actions"><summary>命令与操作入口</summary><ul><li><span class="action-kind">授权 CLI</span><strong>签发分发证书</strong><p>Apple Account Holder 或 Admin 操作。已有签名身份可先复用。</p><pre><code>fastlane cert --generate_apple_certs --team_id &quot;$TEAM_ID&quot;</code></pre></li><li><span class="action-kind">后台入口</span><strong>后台签发，本机导出</strong><p>Apple Developer → Certificates, Identifiers &amp; Profiles → Certificates → Apple Distribution。Xcode → Settings → Accounts → Manage Certificates → Export Certificate。导出机器须有对应私钥。</p></li><li><span class="action-kind">本地检查</span><strong>检查 .p12 和描述文件</strong><p>按终端提示输入密码。</p><pre><code>python3 scripts/check-ios-signing.py \
+  --bundle-id &quot;$BUNDLE_ID&quot; --team-id &quot;$TEAM_ID&quot; \
+  --p12 &quot;$P12_PATH&quot; --profile &quot;$PROFILE_PATH&quot;</code></pre></li></ul></details></div></li>
+<li><span class="step" aria-hidden="true">02</span><div class="credential"><h4>.p12 密码与项目变量</h4><dl class="roles"><div><dt>来源</dt><dd>导出人设密码，项目脚本定变量名。</dd></div><div><dt>保管／授权</dt><dd>团队保管密码，按需注入构建环境。</dd></div><div><dt>Skill 协助</dt><dd>找出变量，验证密码能否打开 .p12。</dd></div></dl><details class="actions"><summary>命令与操作入口</summary><ul><li><span class="action-kind">团队配置</span><strong>设置或取用密码</strong><p>新密码在 Xcode 导出时设置。已有密码从团队密钥库取得。</p></li><li><span class="action-kind">本地检查</span><strong>CI 读取密码</strong><p>给 .p12 检查命令加上以下参数，密码由 CI 注入。</p><pre><code>--password-env P12_PASSWORD</code></pre></li></ul></details></div></li>
+<li><span class="step" aria-hidden="true">03</span><div class="credential"><h4>.mobileprovision 描述文件</h4><dl class="roles"><div><dt>来源</dt><dd>Apple 按 App ID 和分发证书签发。</dd></div><div><dt>保管／授权</dt><dd>账号持有人或管理员下载，团队保管。</dd></div><div><dt>Skill 协助</dt><dd>指导获取，核对 App ID、Team、类型、有效期、权限与证书。</dd></div></dl><details class="actions"><summary>命令与操作入口</summary><ul><li><span class="action-kind">授权 CLI</span><strong>下载或创建</strong><p>--readonly 只下载已有文件。获准创建时去掉它。CERT_ID 用 Apple 证书资源 ID，OUTPUT_DIR 用新目录。</p><pre><code>fastlane sigh --app_identifier &quot;$BUNDLE_ID&quot; \
+  --team_id &quot;$TEAM_ID&quot; --cert_id &quot;$CERT_ID&quot; \
+  --output_path &quot;$OUTPUT_DIR&quot; --skip_install --readonly</code></pre></li><li><span class="action-kind">后台入口</span><strong>手动创建并下载</strong><p>Account Holder 或 Admin：Apple Developer → Certificates, Identifiers &amp; Profiles → Profiles → + → App Store Connect → 选 App ID 和证书 → Generate → Download。</p></li><li><span class="action-kind">本地检查</span><strong>核对描述文件</strong><p>运行 .p12 卡的检查命令，--profile 指向下载的文件。</p></li></ul></details></div></li>
+</ol></div><div class="lane"><h3><span aria-hidden="true">↑</span>商店上传凭据</h3><ol class="steps">
+<li><span class="step" aria-hidden="true">01</span><div class="credential"><h4>.p8 上传私钥</h4><dl class="roles"><div><dt>来源</dt><dd>App Store Connect 生成 Team Key，私钥限下载一次。</dd></div><div><dt>保管／授权</dt><dd>管理员选角色，团队保管私钥。</dd></div><div><dt>Skill 协助</dt><dd>定位 .p8，判断能否复用，缺件时给获取步骤。</dd></div></dl><details class="actions"><summary>命令与操作入口</summary><ul><li><span class="action-kind admin">管理员后台</span><strong>创建 Team Key</strong><p>App Store Connect → Users and Access → Integrations → App Store Connect API → Team Keys → Generate API Key → 选角色 → Download API Key。首次 API 访问由 Account Holder 在 Integrations 申请。</p></li><li><span class="action-kind">本地检查</span><strong>检查私钥格式</strong><p>启用状态和上传角色在 Team Keys 核对。</p><pre><code>openssl pkey -in &quot;$ASC_P8_PATH&quot; -check -noout</code></pre></li></ul></details></div></li>
+<li><span class="step" aria-hidden="true">02</span><div class="credential"><h4>Key ID</h4><dl class="roles"><div><dt>来源</dt><dd>App Store Connect 为每把密钥分配。</dd></div><div><dt>保管／授权</dt><dd>团队把 ID 和对应 .p8 配在一起。</dd></div><div><dt>Skill 协助</dt><dd>对照项目配置和后台密钥记录。</dd></div></dl><details class="actions"><summary>命令与操作入口</summary><ul><li><span class="action-kind">后台入口</span><strong>复制 Key ID</strong><p>在 .p8 卡的 Team Keys 页面，从对应密钥行复制。</p></li></ul></details></div></li>
+<li><span class="step" aria-hidden="true">03</span><div class="credential"><h4>Issuer ID</h4><dl class="roles"><div><dt>来源</dt><dd>App Store Connect 提供团队的 Issuer ID。</dd></div><div><dt>保管／授权</dt><dd>团队配置 Issuer ID，管理员确认团队和角色。</dd></div><div><dt>Skill 协助</dt><dd>核对目标团队，标记待核实的上传权限。</dd></div></dl><details class="actions"><summary>命令与操作入口</summary><ul><li><span class="action-kind">后台入口</span><strong>复制 Issuer ID</strong><p>在 .p8 卡的 Team Keys 页面上方复制。</p></li></ul></details></div></li>
+</ol></div></div>
+      </div>
+      <div class="handoff"><span aria-hidden="true">↓</span><div><h3>交给项目发布</h3><p>分发身份、描述文件、上传配置和检查记录。</p></div></div>
+      <div class="release"><h3>项目与商店流程</h3><ol><li><strong>构建并签名</strong><span>IPA</span></li><li><strong>上传构建</strong><span>App Store Connect</span></li><li><strong>按需测试</strong><span>TestFlight</span></li><li><strong>选择构建并送审</strong><span>App Review</span></li><li><strong>审核通过后发布</strong><span>按所选方式上线</span></li></ol></div>
+    </section>
+
+    <section id="android" class="platform" aria-labelledby="android-heading">
+      <div class="platform-header"><div><h2 id="android-heading">Android</h2><p>Google Play</p></div><div class="target"><strong>确认正式发布目标</strong><p>正式包名、Play 应用、发布配置。</p></div></div>
+      <div class="workflow">
+        <div class="scope"><span aria-hidden="true"></span><h3>Skill 覆盖</h3></div>
+        <div class="lanes"><div class="lane"><h3><span aria-hidden="true">◇</span>构建签名</h3><ol class="steps">
+<li><span class="step" aria-hidden="true">01</span><div class="credential"><h4>上传 keystore（如 .jks）</h4><dl class="roles"><div><dt>来源</dt><dd>团队在本地生成。已上架应用沿用登记的上传密钥。</dd></div><div><dt>保管／授权</dt><dd>团队保管。丢失时由有权限的 Play 人员申请重置。</dd></div><div><dt>Skill 协助</dt><dd>定位文件、判断能否复用，给出首发或重置步骤。</dd></div></dl><details class="actions"><summary>命令与操作入口</summary><ul><li><span class="action-kind">本地创建</span><strong>生成 JKS</strong><p>首发使用新文件路径，按提示设置密码。</p><pre><code>keytool -genkeypair -keystore &quot;$NEW_UPLOAD_KEYSTORE&quot; \
+  -alias &quot;$UPLOAD_KEY_ALIAS&quot; -keyalg RSA -keysize 2048 \
+  -validity 10000 -storetype JKS</code></pre></li><li><span class="action-kind admin">管理员后台</span><strong>申请重置上传密钥</strong><p>Play Console → 目标应用 → Test and release → App integrity → Play app signing → Request upload key reset。提交新公开证书。</p></li></ul></details></div></li>
+<li><span class="step" aria-hidden="true">02</span><div class="credential"><h4>alias 与签名密码</h4><dl class="roles"><div><dt>来源</dt><dd>团队创建密钥时设置 alias 和两类密码。</dd></div><div><dt>保管／授权</dt><dd>alias 放项目配置，密码放本机或 CI 密钥库。</dd></div><div><dt>Skill 协助</dt><dd>用 keytool 确认 alias 含私钥。签名与私钥密码另验。</dd></div></dl><details class="actions"><summary>命令与操作入口</summary><ul><li><span class="action-kind">本地检查</span><strong>查看 alias 和指纹</strong><p>按终端提示输入 keystore 密码。</p><pre><code>keytool -list -v -keystore &quot;$UPLOAD_KEYSTORE&quot; \
+  -alias &quot;$UPLOAD_KEY_ALIAS&quot;</code></pre></li></ul></details></div></li>
+<li><span class="step" aria-hidden="true">03</span><div class="credential"><h4>上传证书与 SHA-256</h4><dl class="roles"><div><dt>来源</dt><dd>证书来自上传密钥，Play Console 显示已登记的指纹。</dd></div><div><dt>保管／授权</dt><dd>有权限的 Play 人员登记，团队可保存公开指纹。</dd></div><div><dt>Skill 协助</dt><dd>比对上传证书的 SHA-256，注明基准来源。</dd></div></dl><details class="actions"><summary>命令与操作入口</summary><ul><li><span class="action-kind">本地检查</span><strong>导出公开证书</strong><p>SHA-256 用上一卡的 keytool -list -v 查看。登记或重置时导出公开证书。</p><pre><code>keytool -exportcert -rfc -keystore &quot;$UPLOAD_KEYSTORE&quot; \
+  -alias &quot;$UPLOAD_KEY_ALIAS&quot; -file &quot;$UPLOAD_CERT_PEM&quot;</code></pre></li><li><span class="action-kind">后台入口</span><strong>查看登记指纹</strong><p>Play Console → 目标应用 → Test and release → App integrity → Play app signing → Upload key certificate → SHA-256。</p></li></ul></details></div></li>
+</ol></div><div class="lane"><h3><span aria-hidden="true">↑</span>商店上传凭据</h3><ol class="steps">
+<li><span class="step" aria-hidden="true">01</span><div class="credential"><h4>Android Publisher API 与服务账号</h4><dl class="roles"><div><dt>来源</dt><dd>Google Cloud 提供 API，Cloud IAM 创建账号。</dd></div><div><dt>保管／授权</dt><dd>有权限的 Cloud 项目人员启用 API、管理账号。</dd></div><div><dt>Skill 协助</dt><dd>默认离线预览。显式 --apply 后检查云端并按需补齐。</dd></div></dl><details class="actions"><summary>命令与操作入口</summary><ul><li><span class="action-kind">脚本可执行</span><strong>预览或执行准备脚本</strong><p>具备 Cloud 项目权限后，将 --dry-run 换成 --apply。也会按需准备 JSON。</p><pre><code>bash scripts/prepare-google-play-credentials.sh \
+  --project &quot;$PROJECT_ID&quot; --service-account &quot;$ACCOUNT_ID&quot; \
+  --key-path &quot;$PLAY_JSON&quot; --dry-run</code></pre></li><li><span class="action-kind">后台入口</span><strong>启用 API 或管理账号</strong><p>Google Cloud Console → APIs &amp; Services → Library → Google Play Android Developer API → Enable。账号在 IAM &amp; Admin → Service Accounts。</p></li></ul></details></div></li>
+<li><span class="step" aria-hidden="true">02</span><div class="credential"><h4>发布服务账号 JSON</h4><dl class="roles"><div><dt>来源</dt><dd>Google Cloud IAM 生成 JSON 密钥。</dd></div><div><dt>保管／授权</dt><dd>有权限的 Cloud 人员创建，团队保管私钥。</dd></div><div><dt>Skill 协助</dt><dd>检查 JSON 类型、账号和配置，按需生成新文件。</dd></div></dl><details class="actions"><summary>命令与操作入口</summary><ul><li><span class="action-kind">授权 CLI</span><strong>为已有账号生成 JSON</strong><p>优先用上一卡的脚本检查现有文件。新密钥保存到私有目录中的新文件。</p><pre><code>gcloud iam service-accounts keys create &quot;$NEW_PLAY_JSON&quot; \
+  --iam-account=&quot;$SERVICE_ACCOUNT_EMAIL&quot; --project=&quot;$PROJECT_ID&quot; \
+  --key-file-type=json</code></pre></li><li><span class="action-kind">后台入口</span><strong>创建并下载 JSON</strong><p>Google Cloud Console → IAM &amp; Admin → Service Accounts → 选账号 → Keys → Add key → Create new key → JSON。</p></li></ul></details></div></li>
+<li><span class="step" aria-hidden="true">03</span><div class="credential"><h4>目标应用的发布权限</h4><dl class="roles"><div><dt>来源</dt><dd>Play Console 按服务账号邮箱记录应用权限。</dd></div><div><dt>保管／授权</dt><dd>Play 管理员为目标应用授予所需权限。</dd></div><div><dt>Skill 协助</dt><dd>指导核对上传权限。可用 gpd 探测包级访问。</dd></div></dl><details class="actions"><summary>命令与操作入口</summary><ul><li><span class="action-kind admin">管理员后台</span><strong>授权目标应用</strong><p>Play Console → Users and permissions → 邀请或选择服务账号 → App permissions → 选应用和所需权限。已有管理授权的集成可用 users.create 和 grants.create。</p></li><li><span class="action-kind">授权 CLI</span><strong>探测包级访问</strong><p>会创建并尝试删除临时 edit。上传权限单独核实。</p><pre><code>gpd auth check --key-path &quot;$PLAY_JSON&quot; \
+  --package &quot;$ANDROID_PACKAGE&quot; --store-tokens never --output json</code></pre></li></ul></details></div></li>
+</ol></div></div>
+      </div>
+      <div class="handoff"><span aria-hidden="true">↓</span><div><h3>交给项目发布</h3><p>上传 keystore、服务账号 JSON 配置和检查记录。</p></div></div>
+      <div class="release"><h3>项目与商店流程</h3><ol><li><strong>构建并签名</strong><span>AAB</span></li><li><strong>上传构建</strong><span>Google Play</span></li><li><strong>按需测试</strong><span>内部或封闭测试</span></li><li><strong>准备生产版本并送审</strong><span>Play Console</span></li><li><strong>审核通过后发布</strong><span>上线或逐步放量</span></li></ol></div>
+    </section>
+
+  <footer>命令变量取自项目配置。密码和私钥由本机或 CI 密钥库提供。scripts/ 命令从 Skill 仓库根目录运行。</footer>
+</main>
+</body>
+</html>

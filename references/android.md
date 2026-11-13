@@ -18,44 +18,20 @@ Check that the configured JSON exists, is a service-account credential, and has 
 
 ### Prepare a publisher credential with gcloud
 
-Start with the target project's configured credential. If it already has an appropriate service account and a usable key, verify their access before considering a new key. Otherwise, resolve the approved Google Cloud project, the service account email or intended account ID, and the output path expected by the uploader. Prefer the target project's own helper when available.
-
-Inspect the API and account with read-only commands. Set `GOOGLE_CLOUD_PROJECT_ID` and `PLAY_SERVICE_ACCOUNT_EMAIL` to the values for this setup.
+Resolve the Google Cloud project, service account ID, and private, Git-ignored JSON path expected by the uploader. Prefer the target project's own helper when available. Otherwise use the [standalone script](../scripts/prepare-google-play-credentials.sh) from this repository or copy it into the target project. It works with Bash 3.2 or later. Relative key paths resolve from the current working directory.
 
 ```sh
-gcloud services list --enabled --project "${GOOGLE_CLOUD_PROJECT_ID:?}" \
-  --filter='config.name:androidpublisher.googleapis.com' --format='value(config.name)'
-gcloud iam service-accounts describe "${PLAY_SERVICE_ACCOUNT_EMAIL:?}" \
-  --project "${GOOGLE_CLOUD_PROJECT_ID:?}" --format='value(email)'
+bash scripts/prepare-google-play-credentials.sh \
+  --project example-mobile --service-account play-publisher \
+  --key-path ./credentials/google-play/publisher.json --dry-run
 ```
 
-An empty result from a successful API listing means the API is disabled. Resolve permission errors before deciding that an API or account is missing. For offline or dry-run requests, report the planned actions without executing the commands that change Cloud resources. Use the project's existing provisioning dry-run when available.
+- **Dry-run** is the default. It checks argument and path shape and prints the planned actions. It leaves cloud status pending and runs without `gcloud` or Python. It creates no directories or files.
+- **Apply** requires an explicit `--apply` in place of `--dry-run`, an authenticated `gcloud` CLI with permission to inspect the project and service accounts, and Python 3. It checks both cloud resources before making changes, enables the Android Publisher API if needed, and creates the service account if missing. A failed cloud lookup or a disabled account stops the run.
+- **Local JSON** is reused when its structure and account email match and the service account exists. This checks local structure and account identity. Live key validity and Play permissions still need separate evidence. A mismatched or malformed file or a symbolic link at the destination stops the run. A new key is staged privately, checked, and installed with mode `0600` without replacing an existing path. Use a local filesystem that supports hard links.
+- **Recovery** depends on the failed step. Run apply again after fixing API or account setup and it will reuse completed cloud setup. If key creation or local installation fails, inspect the service account's keys before retrying. The script reports the Key ID when it can recover it from the staged JSON and removes the temporary copy. If organization policy blocks user-managed keys, ask the project owner which credential source the uploader supports.
 
-When authorized, enable the API if disabled and create an account only if a new one is needed. For creation, set `PLAY_PUBLISHER_ACCOUNT_ID` to the chosen account ID, then use the resulting account email for key creation and Play access.
-
-```sh
-gcloud services enable androidpublisher.googleapis.com --project "${GOOGLE_CLOUD_PROJECT_ID:?}"
-gcloud iam service-accounts create "${PLAY_PUBLISHER_ACCOUNT_ID:?}" \
-  --project "${GOOGLE_CLOUD_PROJECT_ID:?}" --display-name='Google Play publisher'
-```
-
-When the uploader requires a new JSON key and key creation is authorized, set `PLAY_SERVICE_ACCOUNT_JSON` to a new file in the target app's private, Git-ignored credentials directory. Resolve and check the destination before creating it. If organization policy blocks user-managed keys, ask the project owner which supported credential source the uploader should use.
-
-```sh
-(
-  set -eu
-  : "${PLAY_SERVICE_ACCOUNT_JSON:?Set a new service-account JSON path}"
-  test ! -e "$PLAY_SERVICE_ACCOUNT_JSON" && test ! -L "$PLAY_SERVICE_ACCOUNT_JSON" || exit 1
-  umask 077
-  mkdir -p -- "$(dirname -- "$PLAY_SERVICE_ACCOUNT_JSON")"
-  gcloud iam service-accounts keys create "$PLAY_SERVICE_ACCOUNT_JSON" \
-    --iam-account="${PLAY_SERVICE_ACCOUNT_EMAIL:?}" \
-    --key-file-type=json --project "${GOOGLE_CLOUD_PROJECT_ID:?}"
-  chmod 600 "$PLAY_SERVICE_ACCOUNT_JSON"
-)
-```
-
-Check the JSON type and account email locally without printing the file. In Play Console **Users and permissions**, verify or arrange the grant for this service account and the exact target app. Use the permissions required by the intended operation. Cloud IAM setup and Play Console access are separate.
+Verify or arrange the grant for the exact target app in Play Console **Users and permissions**, using the permissions required for the intended operation.
 
 [Enable an API](https://cloud.google.com/sdk/gcloud/reference/services/enable) · [Create a service account](https://cloud.google.com/sdk/gcloud/reference/iam/service-accounts/create) · [Create a service account key](https://cloud.google.com/sdk/gcloud/reference/iam/service-accounts/keys/create) · [Google Play API setup](https://developers.google.com/android-publisher/getting_started)
 
@@ -72,11 +48,11 @@ gpd auth check \
 
 This online probe creates an uncommitted Play edit and attempts to delete it. Check that the result names the intended package, reports `valid: true`, and contains no cleanup error. Record package-level edit access as the evidence and verify the intended upload or release permission separately. If the probe is unavailable, fails, or cleanup fails, report the result without raw credentials or account details. For offline or strict read-only work, use `gpd auth check --help` for command validation and leave platform access pending.
 
-[Android signing and upload keys](https://developer.android.com/studio/publish/app-signing) · [gpd authentication guide](https://github.com/dl-alexandre/Google-Play-Developer-CLI/blob/master/docs/auth-parity-guide.md) · [Expo Android release reference](https://github.com/expo/skills/blob/main/plugins/expo/skills/eas-app-stores/references/play-store.md)
+[Android signing and upload keys](https://developer.android.com/studio/publish/app-signing) · [gpd authentication guide](https://github.com/dl-alexandre/Google-Play-Developer-CLI/blob/master/docs/auth-parity-guide.md)
 
 ## Example: upgrade an existing Play app
 
 - Resolve the current Play listing's package and compare it with the destination release configuration. Use that listing's upload certificate fingerprint as the expected baseline.
 - Compare the destination's configured upload keystore and alias against the baseline. Test a different fingerprint and a missing baseline with synthetic inputs. Both cases should leave reuse unconfirmed.
 - Resolve the publisher credential from the destination's release configuration. Check the file shape locally and record Play Console access as pending unless there is evidence for the exact listing.
-- If the repository already provides a publisher-key dry-run, point it at a fresh private temporary directory and use synthetic project and account identifiers. Verify that it makes no provider changes and generates no files. Google Cloud IAM key creation and Play Console access remain separate operations.
+- Use the standalone script or the project’s helper for a publisher-key dry-run. Point it at a fresh private temporary directory and use synthetic project and account identifiers. Verify that it makes no provider changes and generates no files.

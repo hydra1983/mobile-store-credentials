@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>iOS and Android release flows</title>
+<style>
+:root {
+  color-scheme: light;
+  --paper: #f5f4ef;
+  --surface: #fffcf7;
+  --ink: #162d28;
+  --muted: #425a51;
+  --accent: #28614c;
+  --line: #d7dfd5;
+  --tint: #e8f0e8;
+  --dark: #13362d;
+  --soft: #c6dcd0;
+  --mono: "Geist Mono", ui-monospace, Menlo, Consolas, monospace;
+  --sans: Geist, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  --serif: "Instrument Serif", "Songti SC", Georgia, serif;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 18px; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 16px/1.58 var(--sans); }
+h1, h2, h3, h4, p { margin: 0; }
+a { color: inherit; }
+a:focus-visible { outline: 2px solid currentColor; outline-offset: 4px; }
+.wrap { width: min(1176px, calc(100% - 80px)); margin-inline: auto; }
+.masthead { background: var(--dark); color: #fffdf4; padding: 48px 0; }
+.hero { display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: 42px; }
+h1 { font-size: clamp(36px, 4.75vw, 64px); font-weight: 650; line-height: 1.12; letter-spacing: -.04em; }
+h1 span { display: block; }
+h1 .latin { font: 400 1.08em/1.06 var(--serif); letter-spacing: -.045em; }
+.hero-copy p { color: var(--soft); max-width: 34em; margin-top: 17px; }
+.hero-copy code { color: #fffdf4; font-family: var(--mono); font-size: .85em; }
+nav { display: flex; gap: 9px; margin-top: 23px; }
+nav a { border: 1px solid #729283; border-radius: 999px; text-decoration: none; padding: 6px 14px; font-size: 14px; }
+nav a:hover { background: #2c5146; }
+.overview { width: 100%; display: block; }
+.diagram-panel { fill: #183e34; stroke: #537568; }
+.diagram-box { fill: #234a3f; stroke: #71988a; }
+.diagram-wire { fill: none; stroke: #b9d7c7; stroke-width: 1.5; }
+.diagram-label { font: 600 19px var(--sans); fill: #f3f7ed; }
+.diagram-end { fill: #dce9ce; }
+.diagram-end-label { font: 650 19px var(--sans); fill: #183b32; }
+main { padding: 39px 0 44px; }
+.platform { background: var(--surface); border: 1px solid var(--line); border-radius: 24px; padding: 28px 30px; box-shadow: 0 12px 36px #233d2609; }
+.platform + .platform { margin-top: 24px; }
+.platform-header { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-bottom: 19px; }
+h2 { font: 400 clamp(40px, 5vw, 60px)/1 var(--serif); letter-spacing: -.05em; }
+.platform-header > div:first-child p { color: var(--muted); margin-top: 5px; }
+.target { border-left: 2px solid #93ac9a; padding: 3px 0 3px 15px; }
+.target strong { font-size: 15px; }
+.target p { color: var(--muted); font-size: 14px; }
+.workflow { background: var(--tint); border: 1px solid #d6e2d6; border-radius: 17px; padding: 16px; }
+.scope { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 9px; margin: 0 2px 11px; }
+.scope > span { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+.scope h3 { font-size: 15px; }
+.scope p { color: var(--muted); font-size: 13px; margin-left: 4px; }
+.lanes { display: grid; grid-template-columns: 1fr 1fr; gap: 13px; }
+.lane { min-width: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 15px 17px; }
+.lane h3 { font-size: 17px; margin-bottom: 12px; display: flex; align-items: center; gap: 9px; }
+.lane h3 span, .handoff > span { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 7px; background: var(--tint); color: var(--accent); font-size: 19px; flex: 0 0 auto; }
+.steps { list-style: none; margin: 0; padding: 0; }
+.steps > li { position: relative; display: grid; grid-template-columns: 31px minmax(0, 1fr); gap: 8px; padding-bottom: 13px; }
+.steps > li:last-child { padding-bottom: 0; }
+.steps > li:not(:last-child)::after { content: ""; position: absolute; top: 27px; left: 14px; bottom: 4px; width: 1px; background: #9bb5a6; }
+.steps > li:not(:last-child)::before { content: ""; position: absolute; left: 12px; bottom: 4px; width: 4px; height: 4px; border: solid #648878; border-width: 0 1px 1px 0; transform: rotate(45deg); }
+.step { background: var(--tint); color: var(--accent); border: 1px solid #d6e2d6; width: 29px; height: 24px; border-radius: 6px; display: grid; place-items: center; font: 600 11px var(--mono); }
+.steps h4 { font-size: 15px; line-height: 1.55; }
+.credential { min-width: 0; }
+.roles { margin: 6px 0 0; border-top: 1px solid var(--line); padding-top: 5px; }
+.roles > div { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 7px; padding: 3px 0; }
+.roles dt { color: var(--accent); font-size: 12px; font-weight: 650; line-height: 1.7; }
+.roles dd { color: var(--muted); margin: 0; font-size: 14px; line-height: 1.5; overflow-wrap: anywhere; }
+.roles > div:last-child dd { color: var(--ink); }
+.handoff { display: flex; gap: 11px; align-items: center; border: 1px solid #acbfaa; background: #edf1e3; border-radius: 12px; margin: 12px 0; padding: 10px 14px; }
+.handoff h3, .release h3 { font-size: 15px; }
+.handoff p { font-size: 13px; color: var(--muted); }
+.release { padding-top: 4px; }
+.release ol { margin: 8px 0 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 15px; }
+.release li { min-width: 0; position: relative; border-top: 2px solid #b9c7bc; padding: 7px 15px 1px 0; }
+.release li:not(:last-child)::after { content: ""; width: 6px; height: 6px; transform: rotate(-45deg); border: solid #627b6b; border-width: 0 1.5px 1.5px 0; position: absolute; right: 3px; top: 14px; }
+.release strong, .release li span { display: block; }
+.release strong { font-size: 14px; }
+.release li span { color: var(--muted); font-size: 13px; }
+
+.actions { margin-top: 8px; border: 1px solid var(--line); border-radius: 8px; background: #f8faf4; }
+.actions summary { padding: 6px 8px; color: var(--accent); font-size: 12px; font-weight: 650; cursor: pointer; }
+.actions summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
+.actions ul { margin: 0; padding: 0 8px 7px; list-style: none; }
+.actions li { border-top: 1px solid var(--line); padding: 7px 0 4px; }
+.action-kind { display: inline-block; padding: 1px 5px; margin: 0 6px 3px 0; border-radius: 4px; background: #e5eee4; color: var(--accent); font-size: 11px; font-weight: 650; }
+.action-kind.admin { background: #f4e9d6; color: #674719; }
+.actions strong { color: var(--ink); font-size: 13px; }
+.actions p { color: var(--muted); font-size: 13px; line-height: 1.55; overflow-wrap: anywhere; }
+.actions pre { margin: 5px 0 2px; padding: 6px 7px; border-radius: 5px; background: #eaf0e8; color: var(--ink); font: 12px/1.5 var(--mono); white-space: pre-wrap; overflow-wrap: anywhere; }
+
+footer { margin: 17px 3px 0; color: var(--muted); font-size: 13px; }
+@media (max-width: 900px) {
+  .wrap { width: calc(100% - 44px); }
+  .hero { gap: 23px; }
+  .platform { padding: 22px; }
+}
+@media (max-width: 680px) {
+  .wrap { width: calc(100% - 28px); }
+  .masthead { padding: 28px 0 22px; }
+  .hero, .lanes { grid-template-columns: 1fr; }
+  .hero { gap: 19px; }
+  .overview { max-width: 470px; }
+  main { padding-top: 20px; }
+  .platform { padding: 15px; border-radius: 18px; }
+  .platform-header { align-items: start; flex-direction: column; gap: 10px; margin-bottom: 13px; }
+  .workflow { padding: 10px; }
+  .lane { padding: 12px; }
+  .release ol { grid-template-columns: 1fr; gap: 3px; padding-left: 10px; }
+  .release li { border: 0; padding: 3px 6px 6px 15px; }
+  .release li::before { content: ""; width: 7px; height: 7px; position: absolute; left: 0; top: 10px; border: 1px solid var(--accent); border-radius: 50%; }
+  .release li:not(:last-child)::after { width: 1px; height: auto; transform: none; border: 0; background: #9bb5a6; inset: 21px auto 0 3px; }
+}
+@media (max-width: 460px) {
+  .roles > div { grid-template-columns: 1fr; gap: 0; padding: 3px 0 5px; }
+}
+@media print {
+  .masthead { padding: 17px 0; }
+  .wrap { width: 100%; }
+  main { padding-top: 14px; }
+  .platform { box-shadow: none; break-inside: avoid; }
+}
+</style>
+</head>
+<body>
+<header class="masthead"><div class="wrap hero">
+  <div class="hero-copy">
+    <h1><span class="latin">iOS / Android</span><span>Release flows</span></h1>
+    <p><code>mobile-store-credentials</code> prepares release credentials. The project team builds and releases the app.</p>
+    <nav aria-label="Jump to a platform"><a href="#ios">iOS</a><a href="#android">Android</a></nav>
+  </div>
+  <svg class="overview" viewBox="0 0 528 256" role="img" aria-labelledby="overview-title overview-desc">
+    <title id="overview-title">From credential preparation to store release</title>
+    <desc id="overview-desc">Confirm the release target, prepare signing and upload credentials in parallel, then hand them off to the project team.</desc>
+    <defs><marker id="hero-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 8 4 0 8Z" fill="#b9d7c7"/></marker></defs>
+    <rect class="diagram-panel" x="2" y="2" width="524" height="252" rx="21"/>
+    <path class="diagram-wire" d="M264 60V76"/>
+    <path class="diagram-wire" d="M264 76H144Q136 76 136 84V103" marker-end="url(#hero-arrow)"/>
+    <path class="diagram-wire" d="M264 76H384Q392 76 392 84V103" marker-end="url(#hero-arrow)"/>
+    <path class="diagram-wire" d="M136 149V165Q136 173 144 173H264M392 149V165Q392 173 384 173H264"/>
+    <path class="diagram-wire" d="M264 173V198" marker-end="url(#hero-arrow)"/>
+    <rect class="diagram-box" x="172" y="22" width="184" height="38" rx="8"/>
+    <text class="diagram-label" x="264" y="47" text-anchor="middle">Release target</text>
+    <rect class="diagram-box" x="40" y="105" width="192" height="44" rx="8"/>
+    <text class="diagram-label" x="136" y="134" text-anchor="middle">Build signing</text>
+    <rect class="diagram-box" x="296" y="105" width="192" height="44" rx="8"/>
+    <text class="diagram-label" x="392" y="134" text-anchor="middle">Upload credentials</text>
+    <rect class="diagram-end" x="160" y="200" width="208" height="36" rx="8"/>
+    <text class="diagram-end-label" x="264" y="225" text-anchor="middle">Release handoff</text>
+  </svg>
+</div></header>
+<main class="wrap">
+
+    <section id="ios" class="platform" aria-labelledby="ios-heading">
+      <div class="platform-header"><div><h2 id="ios-heading">iOS</h2><p>App Store</p></div><div class="target"><strong>Confirm the production target</strong><p>Bundle ID, Apple Developer team, and app capabilities.</p></div></div>
+      <div class="workflow">
+        <div class="scope"><span aria-hidden="true"></span><h3>Skill coverage</h3></div>
+        <div class="lanes"><div class="lane"><h3><span aria-hidden="true">◇</span>Build signing</h3><ol class="steps">
+<li><span class="step" aria-hidden="true">01</span><div class="credential"><h4>.p12 distribution identity</h4><dl class="roles"><div><dt>Source</dt><dd>Apple issues the certificate. The team exports it with its private key as a .p12.</dd></div><div><dt>Custody / access</dt><dd>The team stores it and grants the build environment access.</dd></div><div><dt>Skill support</dt><dd>Checks the key, certificate, team, and expiry. Check revocation in the Apple portal.</dd></div></dl><details class="actions"><summary>Commands and console paths</summary><ul><li><span class="action-kind">Authorized CLI</span><strong>Issue a distribution certificate</strong><p>An Apple Account Holder or Admin can run this. Reuse an existing identity when possible.</p><pre><code>fastlane cert --generate_apple_certs --team_id &quot;$TEAM_ID&quot;</code></pre></li><li><span class="action-kind">Console path</span><strong>Issue in the portal, export locally</strong><p>Apple Developer → Certificates, Identifiers &amp; Profiles → Certificates → Apple Distribution. Xcode → Settings → Accounts → Manage Certificates → Export Certificate. Export from the Mac holding the private key.</p></li><li><span class="action-kind">Local check</span><strong>Check the .p12 and profile</strong><p>Enter the password at the terminal prompt.</p><pre><code>python3 scripts/check-ios-signing.py \
+  --bundle-id &quot;$BUNDLE_ID&quot; --team-id &quot;$TEAM_ID&quot; \
+  --p12 &quot;$P12_PATH&quot; --profile &quot;$PROFILE_PATH&quot;</code></pre></li></ul></details></div></li>
+<li><span class="step" aria-hidden="true">02</span><div class="credential"><h4>.p12 password and project variable</h4><dl class="roles"><div><dt>Source</dt><dd>The person exporting the file sets the password. The project script names the variable.</dd></div><div><dt>Custody / access</dt><dd>The team stores the password and supplies it to the build environment as needed.</dd></div><div><dt>Skill support</dt><dd>Finds the variable and checks whether the password opens the .p12.</dd></div></dl><details class="actions"><summary>Commands and console paths</summary><ul><li><span class="action-kind">Team setup</span><strong>Set or retrieve the password</strong><p>Set a new password during Xcode export. Retrieve an existing one from the team&#x27;s secret store.</p></li><li><span class="action-kind">Local check</span><strong>Read the password in CI</strong><p>Add this option to the .p12 checker. Supply the password through CI.</p><pre><code>--password-env P12_PASSWORD</code></pre></li></ul></details></div></li>
+<li><span class="step" aria-hidden="true">03</span><div class="credential"><h4>.mobileprovision profile</h4><dl class="roles"><div><dt>Source</dt><dd>Apple issues it for an App ID and distribution certificate.</dd></div><div><dt>Custody / access</dt><dd>An Account Holder or Admin downloads it. The team stores it.</dd></div><div><dt>Skill support</dt><dd>Guides retrieval and checks App ID, team, profile type, expiry, entitlements, and certificate.</dd></div></dl><details class="actions"><summary>Commands and console paths</summary><ul><li><span class="action-kind">Authorized CLI</span><strong>Download or create</strong><p>--readonly downloads an existing profile. Remove it when authorized to create one. Use the Apple certificate resource ID for CERT_ID and a new directory for OUTPUT_DIR.</p><pre><code>fastlane sigh --app_identifier &quot;$BUNDLE_ID&quot; \
+  --team_id &quot;$TEAM_ID&quot; --cert_id &quot;$CERT_ID&quot; \
+  --output_path &quot;$OUTPUT_DIR&quot; --skip_install --readonly</code></pre></li><li><span class="action-kind">Console path</span><strong>Create and download in the portal</strong><p>Account Holder or Admin → Apple Developer → Certificates, Identifiers &amp; Profiles → Profiles → + → App Store Connect → select App ID and certificate → Generate → Download.</p></li><li><span class="action-kind">Local check</span><strong>Check the profile</strong><p>Run the checker from the .p12 card with --profile pointing to the downloaded file.</p></li></ul></details></div></li>
+</ol></div><div class="lane"><h3><span aria-hidden="true">↑</span>Upload credentials</h3><ol class="steps">
+<li><span class="step" aria-hidden="true">01</span><div class="credential"><h4>.p8 upload private key</h4><dl class="roles"><div><dt>Source</dt><dd>App Store Connect generates the Team Key. The private key can be downloaded once.</dd></div><div><dt>Custody / access</dt><dd>An admin selects the role. The team stores the private key.</dd></div><div><dt>Skill support</dt><dd>Finds the .p8, checks reuse, and gives retrieval steps if it is missing.</dd></div></dl><details class="actions"><summary>Commands and console paths</summary><ul><li><span class="action-kind admin">Admin console</span><strong>Create a Team Key</strong><p>App Store Connect → Users and Access → Integrations → App Store Connect API → Team Keys → Generate API Key → select a role → Download API Key. The Account Holder requests initial API access under Integrations.</p></li><li><span class="action-kind">Local check</span><strong>Check the private key format</strong><p>Confirm key status and upload role under Team Keys.</p><pre><code>openssl pkey -in &quot;$ASC_P8_PATH&quot; -check -noout</code></pre></li></ul></details></div></li>
+<li><span class="step" aria-hidden="true">02</span><div class="credential"><h4>Key ID</h4><dl class="roles"><div><dt>Source</dt><dd>App Store Connect assigns one to each key.</dd></div><div><dt>Custody / access</dt><dd>The team configures the ID with the matching .p8.</dd></div><div><dt>Skill support</dt><dd>Compares the project configuration with the console record.</dd></div></dl><details class="actions"><summary>Commands and console paths</summary><ul><li><span class="action-kind">Console path</span><strong>Copy the Key ID</strong><p>Open Team Keys using the path in the .p8 card. Copy the ID from the matching key row.</p></li></ul></details></div></li>
+<li><span class="step" aria-hidden="true">03</span><div class="credential"><h4>Issuer ID</h4><dl class="roles"><div><dt>Source</dt><dd>App Store Connect provides the team&#x27;s Issuer ID.</dd></div><div><dt>Custody / access</dt><dd>The team configures the Issuer ID. An admin confirms the team and role.</dd></div><div><dt>Skill support</dt><dd>Checks the target team and flags upload permissions still to verify.</dd></div></dl><details class="actions"><summary>Commands and console paths</summary><ul><li><span class="action-kind">Console path</span><strong>Copy the Issuer ID</strong><p>Copy it from the top of the Team Keys page described in the .p8 card.</p></li></ul></details></div></li>
+</ol></div></div>
+      </div>
+      <div class="handoff"><span aria-hidden="true">↓</span><div><h3>Release handoff</h3><p>Distribution identity, profile, upload configuration, and check results.</p></div></div>
+      <div class="release"><h3>Project and store workflow</h3><ol><li><strong>Build and sign</strong><span>IPA</span></li><li><strong>Upload the build</strong><span>App Store Connect</span></li><li><strong>Test if needed</strong><span>TestFlight</span></li><li><strong>Select the build and submit</strong><span>App Review</span></li><li><strong>Release after approval</strong><span>Use the selected release method</span></li></ol></div>
+    </section>
+
+    <section id="android" class="platform" aria-labelledby="android-heading">
+      <div class="platform-header"><div><h2 id="android-heading">Android</h2><p>Google Play</p></div><div class="target"><strong>Confirm the production target</strong><p>Production package name, Play app, and release configuration.</p></div></div>
+      <div class="workflow">
+        <div class="scope"><span aria-hidden="true"></span><h3>Skill coverage</h3></div>
+        <div class="lanes"><div class="lane"><h3><span aria-hidden="true">◇</span>Build signing</h3><ol class="steps">
+<li><span class="step" aria-hidden="true">01</span><div class="credential"><h4>Upload keystore (such as .jks)</h4><dl class="roles"><div><dt>Source</dt><dd>The team generates it locally. Published apps keep using the registered upload key.</dd></div><div><dt>Custody / access</dt><dd>The team stores it. If lost, an authorized Play user requests a reset.</dd></div><div><dt>Skill support</dt><dd>Finds the keystore, checks reuse, and gives first-release or reset steps.</dd></div></dl><details class="actions"><summary>Commands and console paths</summary><ul><li><span class="action-kind">Local creation</span><strong>Generate a JKS</strong><p>For a first release, use a new file path and set the password at the prompt.</p><pre><code>keytool -genkeypair -keystore &quot;$NEW_UPLOAD_KEYSTORE&quot; \
+  -alias &quot;$UPLOAD_KEY_ALIAS&quot; -keyalg RSA -keysize 2048 \
+  -validity 10000 -storetype JKS</code></pre></li><li><span class="action-kind admin">Admin console</span><strong>Request an upload key reset</strong><p>Play Console → select the app → Test and release → App integrity → Play app signing → Request upload key reset. Submit the new public certificate.</p></li></ul></details></div></li>
+<li><span class="step" aria-hidden="true">02</span><div class="credential"><h4>Alias and signing passwords</h4><dl class="roles"><div><dt>Source</dt><dd>The team sets the alias and both passwords when creating the key.</dd></div><div><dt>Custody / access</dt><dd>Keep the alias in project configuration and passwords in a local or CI secret store.</dd></div><div><dt>Skill support</dt><dd>Uses keytool to check that the alias has a private key. Signing and the key password need separate checks.</dd></div></dl><details class="actions"><summary>Commands and console paths</summary><ul><li><span class="action-kind">Local check</span><strong>View the alias and fingerprint</strong><p>Enter the keystore password at the terminal prompt.</p><pre><code>keytool -list -v -keystore &quot;$UPLOAD_KEYSTORE&quot; \
+  -alias &quot;$UPLOAD_KEY_ALIAS&quot;</code></pre></li></ul></details></div></li>
+<li><span class="step" aria-hidden="true">03</span><div class="credential"><h4>Upload certificate and SHA-256</h4><dl class="roles"><div><dt>Source</dt><dd>The upload key provides the certificate. Play Console shows the registered fingerprint.</dd></div><div><dt>Custody / access</dt><dd>An authorized Play user registers it. The team can keep the public fingerprint.</dd></div><div><dt>Skill support</dt><dd>Compares the upload certificate SHA-256 and records where the reference came from.</dd></div></dl><details class="actions"><summary>Commands and console paths</summary><ul><li><span class="action-kind">Local check</span><strong>Export the public certificate</strong><p>Use keytool -list -v from the previous card to view SHA-256. Export the public certificate for registration or a reset.</p><pre><code>keytool -exportcert -rfc -keystore &quot;$UPLOAD_KEYSTORE&quot; \
+  -alias &quot;$UPLOAD_KEY_ALIAS&quot; -file &quot;$UPLOAD_CERT_PEM&quot;</code></pre></li><li><span class="action-kind">Console path</span><strong>View the registered fingerprint</strong><p>Play Console → select the app → Test and release → App integrity → Play app signing → Upload key certificate → SHA-256.</p></li></ul></details></div></li>
+</ol></div><div class="lane"><h3><span aria-hidden="true">↑</span>Upload credentials</h3><ol class="steps">
+<li><span class="step" aria-hidden="true">01</span><div class="credential"><h4>Android Publisher API and service account</h4><dl class="roles"><div><dt>Source</dt><dd>Google Cloud provides the API. Cloud IAM creates the account.</dd></div><div><dt>Custody / access</dt><dd>Authorized Cloud project users enable the API and manage the account.</dd></div><div><dt>Skill support</dt><dd>Previews offline by default. Pass --apply to check Cloud and provision what is missing.</dd></div></dl><details class="actions"><summary>Commands and console paths</summary><ul><li><span class="action-kind">Script</span><strong>Preview or run setup</strong><p>With Cloud project permissions, replace --dry-run with --apply. The script also prepares the JSON if needed.</p><pre><code>bash scripts/prepare-google-play-credentials.sh \
+  --project &quot;$PROJECT_ID&quot; --service-account &quot;$ACCOUNT_ID&quot; \
+  --key-path &quot;$PLAY_JSON&quot; --dry-run</code></pre></li><li><span class="action-kind">Console path</span><strong>Enable the API or manage the account</strong><p>Google Cloud Console → APIs &amp; Services → Library → Google Play Android Developer API → Enable. Find accounts under IAM &amp; Admin → Service Accounts.</p></li></ul></details></div></li>
+<li><span class="step" aria-hidden="true">02</span><div class="credential"><h4>Publisher service account JSON</h4><dl class="roles"><div><dt>Source</dt><dd>Google Cloud IAM generates the JSON key.</dd></div><div><dt>Custody / access</dt><dd>An authorized Cloud user creates it. The team stores the private key.</dd></div><div><dt>Skill support</dt><dd>Checks the JSON type, account, and configuration. Generates a new file when needed.</dd></div></dl><details class="actions"><summary>Commands and console paths</summary><ul><li><span class="action-kind">Authorized CLI</span><strong>Generate JSON for an existing account</strong><p>Check for an existing file with the script in the previous card. Save a new key to a new file in a private directory.</p><pre><code>gcloud iam service-accounts keys create &quot;$NEW_PLAY_JSON&quot; \
+  --iam-account=&quot;$SERVICE_ACCOUNT_EMAIL&quot; --project=&quot;$PROJECT_ID&quot; \
+  --key-file-type=json</code></pre></li><li><span class="action-kind">Console path</span><strong>Create and download JSON</strong><p>Google Cloud Console → IAM &amp; Admin → Service Accounts → select the account → Keys → Add key → Create new key → JSON.</p></li></ul></details></div></li>
+<li><span class="step" aria-hidden="true">03</span><div class="credential"><h4>App release permissions</h4><dl class="roles"><div><dt>Source</dt><dd>Play Console records app permissions against the service account email.</dd></div><div><dt>Custody / access</dt><dd>A Play admin grants the required permissions for the target app.</dd></div><div><dt>Skill support</dt><dd>Guides upload permission checks. gpd can probe package access.</dd></div></dl><details class="actions"><summary>Commands and console paths</summary><ul><li><span class="action-kind admin">Admin console</span><strong>Grant access to the target app</strong><p>Play Console → Users and permissions → invite or select the service account → App permissions → select the app and permissions. Authorized management integrations can use users.create and grants.create.</p></li><li><span class="action-kind">Authorized CLI</span><strong>Probe package access</strong><p>Creates a temporary edit and attempts to delete it. Verify upload permissions separately.</p><pre><code>gpd auth check --key-path &quot;$PLAY_JSON&quot; \
+  --package &quot;$ANDROID_PACKAGE&quot; --store-tokens never --output json</code></pre></li></ul></details></div></li>
+</ol></div></div>
+      </div>
+      <div class="handoff"><span aria-hidden="true">↓</span><div><h3>Release handoff</h3><p>Upload keystore, service account JSON configuration, and check results.</p></div></div>
+      <div class="release"><h3>Project and store workflow</h3><ol><li><strong>Build and sign</strong><span>AAB</span></li><li><strong>Upload the build</strong><span>Google Play</span></li><li><strong>Test if needed</strong><span>Internal or closed testing</span></li><li><strong>Prepare and submit the production release</strong><span>Play Console</span></li><li><strong>Release after approval</strong><span>Go live or roll out gradually</span></li></ol></div>
+    </section>
+
+  <footer>Use your project&#x27;s values for command variables. Supply passwords and private keys through a local or CI secret store. Run scripts/ commands from the skill repository root.</footer>
+</main>
+</body>
+</html>
