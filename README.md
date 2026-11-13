@@ -40,6 +40,10 @@ and list any permissions to verify in Play Console. Use read-only checks.
 
 The skill reports local findings and lists any platform permissions that still need confirmation. Its instructions are in [SKILL.md](SKILL.md).
 
+## Check iOS signing from the command line
+
+This repository includes a read-only [iOS signing checker](scripts/check-ios-signing.py) for App Store profiles and P12 distribution identities. It runs with Python 3 and OpenSSL and works independently of Codex. See [the command and expected results](references/ios.md#run-the-local-signing-checker).
+
 ## Upstream references
 
 - The iOS guide follows the sequence of checking the Bundle ID and capabilities, selecting a signing certificate, and obtaining a matching provisioning profile. [`asc-signing-setup` by rorkai](https://github.com/rorkai/app-store-connect-cli-skills/blob/main/skills/asc-signing-setup/SKILL.md)
